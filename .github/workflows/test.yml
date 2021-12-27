@@ -22,10 +22,7 @@ jobs:
     name: TestRelease
     runs-on: ubuntu-latest
     env:
-      ES_NODE: https://localhost:9200
-      ES_USERNAME: admin
-      ES_PASSWORD: admin
-      ES_SSL_VERIFY: false
+      ES_NODE: http://localhost:9200
 
     strategy:
       matrix:
@@ -42,6 +39,7 @@ jobs:
           bootstrap.memory_lock: true
           OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
           DISABLE_SECURITY_PLUGIN: true
+          DISABLE_INSTALL_DEMO_CONFIG: true
         # Set health checks to wait for "cluster" to be ready
         options: >-
           --health-cmd "curl -s -f http://localhost:9200/_cat/health >/dev/null || exit 1"
@@ -62,4 +60,4 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - name: Check cluster health
-        run: curl -k -u $ES_USERNAME:$ES_PASSWORD -s -f $ES_NODE/_cat/health
+        run: curl -s -f $ES_NODE/_cat/health
