@@ -1,0 +1,64 @@
+# This is a basic workflow to help you get started with Actions
+
+name: TestRelease
+
+# Controls when the workflow will run
+on:
+  push:
+    branches:
+      - main
+      - alpha
+      - beta
+      - '*.x'
+  pull_request:
+    types:
+      - opened
+      - synchronize
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  testrelease:
+    name: TestRelease
+    runs-on: ubuntu-latest
+    env:
+      ES_NODE: https://localhost:9200
+      ES_USERNAME: admin
+      ES_PASSWORD: admin
+      ES_SSL_VERIFY: false
+
+    strategy:
+      matrix:
+        node-version: [14.x]
+
+    services:
+      opensearch:
+        image: opensearchproject/opensearch:1.1.0
+        # set default config for single-node cluster
+        env:
+          discovery.type: single-node
+          cluster.name: opensearch-cluster
+          node.name: opensearch-node1
+          bootstrap.memory_lock: true
+          OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
+        # Set health checks to wait for "cluster" to be ready
+        options: >-
+          --health-cmd "curl -k -u $ES_USERNAME:$ES_PASSWORD -s -f $ES_NODE/_cat/health >/dev/null || exit 1"
+          --health-interval 15s
+          --health-timeout 10s
+          --health-retries 5
+        ports:
+          - 9200:9200
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Check cluster health
+        run: curl -k -u $ES_USERNAME:$ES_PASSWORD -s -f $ES_NODE/_cat/health
