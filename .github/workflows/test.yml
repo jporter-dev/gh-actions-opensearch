@@ -41,6 +41,9 @@ jobs:
           node.name: opensearch-node1
           bootstrap.memory_lock: true
           OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
+          ES_NODE: https://localhost:9200
+          ES_USERNAME: admin
+          ES_PASSWORD: admin
         # Set health checks to wait for "cluster" to be ready
         options: >-
           --health-cmd "curl -k -u $ES_USERNAME:$ES_PASSWORD -s -f $ES_NODE/_cat/health >/dev/null || exit 1"
